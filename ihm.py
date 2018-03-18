@@ -20,6 +20,10 @@ class EveryThing:
         self.streamButton = Button(frame, text="Streaming", command=self.streamingVideo)
         self.streamButton.grid(row=1, column=0, sticky=W)
 
+        #Bouton de visionnage de la derniere video
+        self.lastVidButton = Button(frame, text="Regarder derniere video", command=self.regarderDerniereVideo)
+        self.lastVidButton.grid(row=2, column=0, sticky=W)
+
         #Bouton d'arret du script
         self.quitButton = Button(frame, text="Quitter", command=frame.quit)
         self.quitButton.grid(row=3, column=0, sticky=W)
@@ -35,42 +39,55 @@ class EveryThing:
         while (self.video.isOpened()):
             #Creation d'un frameobject
             check, frame = self.video.read()
-
             #streaming de la capture
             cv2.imshow("Capture en cours", frame)
-
             #Appuyer sur s pour sauvegarder
-            if cv2.waitKey(1) == ord('s'):
-                self.sauvegarderVideo()
+            if cv2.waitKey(5) == ord('s'):
+                self.sauvegarderTempVideo()
             #Appuyer sur 'a' pour arreter le streaming
-            if cv2.waitKey(1) & 0xFF == ord('a'):
+            if cv2.waitKey(5) & 0xFF == ord('a'):
                 cv2.destroyAllWindows()
                 break
 
 
-    def sauvegarderVideo(self):
-        #Creation et recuperation du chemin absolu de sauvegarde
-        self.path = filedialog.asksaveasfilename(**self.file_opt)
-        head, tail = os.path.split(self.path)
-        if not os.path.exists(self.path):
-            os.makedirs(tail)
-        fichier = open(self.path + '.avi', "ab")
+    def sauvegarderTempVideo(self):
+        cv2.destroyAllWindows()
         #Definition du codec et creation de l'objet de sauvegarde de la video
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-        out = cv2.VideoWriter(self.path +'.avi',fourcc, 20.0, (640,480))
+        out = cv2.VideoWriter('temp.avi',fourcc, 15.0, (640,480))
         while(self.video.isOpened()):
             #Creation d'un frameobject
-            frame = self.video.read()
+            check, frame = self.video.read()
+            cv2.imshow("Sauvegarde en cours", frame)
             #Enregistrement des images composant la video
-            out.write("frame",frame)
+            out.write(frame)
             #Appuyer sur z pour stopper l'enregistrement
-            if cv2.waitKey(1) & 0xFF == ord('z'):
-                out.close()
-                fichier.close()
+            if cv2.waitKey(5) & 0xFF == ord('z'):
+                cv2.destroyAllWindows()
+                out.release()
                 break
 
+    def regarderDerniereVideo(self):
+        cv2.destroyAllWindows()
+        lastVid = cv2.VideoCapture("temp.avi")
+        #boucle de visionage
+        while (lastVid.isOpened()):
+            #Creation d'un frameobject
+            check, frame = lastVid.read()
+            if(check == True):
+                #Visionage de la video enregistrée
+                cv2.imshow('frame',frame)
 
+                #Appuyer sur q pour arreter le visionage de video, 50 ici defini la vitesse de lecture
+                #Plus le nombre est petit, plus la video va vite
+                if cv2.waitKey(50) & 0xFF == ord('q'):
+                    break
+            else:
+                break
 
+        #Liberation des objets
+        lastVid.release()
+        cv2.destroyAllWindows()
 
 
 
@@ -79,5 +96,6 @@ class EveryThing:
 mainWin = Tk()
 #Taille minimale de la fenetre principale
 mainWin.geometry("280x220")
+mainWin.geometry('+0+0')
 a = EveryThing(mainWin)
 mainWin.mainloop()
