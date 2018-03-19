@@ -1,6 +1,7 @@
 import cv2, numpy, time, tkinter, os.path
 from tkinter import *
 from tkinter import filedialog
+from shutil import copy2
 from os.path import *
 
 class EveryThing:
@@ -24,13 +25,17 @@ class EveryThing:
         self.lastVidButton = Button(frame, text="Regarder derniere video", command=self.regarderDerniereVideo)
         self.lastVidButton.grid(row=2, column=0, sticky=W)
 
+        #Bouton de sauvegarde
+        self.saveVidButton = Button(frame, text="Sauvegarder Video", command=self.sauvegarderVideo)
+        self.saveVidButton.grid(row=3, column=0, sticky=W)
+
         #Bouton d'arret du script
         self.quitButton = Button(frame, text="Quitter", command=frame.quit)
-        self.quitButton.grid(row=3, column=0, sticky=W)
+        self.quitButton.grid(row=4, column=0, sticky=W)
 
         #option d'affichage dans l'explorateur de fichier
         self.file_opt = options = {}
-        options['filetypes'] = [('all files', '.*'), ('video files', '.avi')]
+        options['filetypes'] = [('video files', '.avi')]
         options['parent'] = master
 
 
@@ -51,6 +56,7 @@ class EveryThing:
 
 
     def sauvegarderTempVideo(self):
+        #Destruction des fenetre pour eviter des freezes
         cv2.destroyAllWindows()
         #Definition du codec et creation de l'objet de sauvegarde de la video
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
@@ -63,12 +69,24 @@ class EveryThing:
             out.write(frame)
             #Appuyer sur z pour stopper l'enregistrement
             if cv2.waitKey(5) & 0xFF == ord('z'):
+                #Liberation des fenetres et de l'objet de sauvegarde
                 cv2.destroyAllWindows()
                 out.release()
                 break
 
+    def sauvegarderVideo(self):
+        #Récupération du chemin absolu de la video temporaire
+        pathsrc = os.path.abspath('temp.avi')
+        #Récupération du chemin absolu du dossier destination
+        pathdest = filedialog.asksaveasfilename(**self.file_opt, title="Choississez le dossier destination")
+        #Copie de la video
+        copy2(pathsrc, pathdest)
+
+
     def regarderDerniereVideo(self):
+        #Destruction des fenetre pour eviter des freezes
         cv2.destroyAllWindows()
+        #Recuperation du fichier a visioner
         lastVid = cv2.VideoCapture("temp.avi")
         #boucle de visionage
         while (lastVid.isOpened()):
@@ -77,7 +95,6 @@ class EveryThing:
             if(check == True):
                 #Visionage de la video enregistrée
                 cv2.imshow('frame',frame)
-
                 #Appuyer sur q pour arreter le visionage de video, 50 ici defini la vitesse de lecture
                 #Plus le nombre est petit, plus la video va vite
                 if cv2.waitKey(50) & 0xFF == ord('q'):
@@ -88,7 +105,6 @@ class EveryThing:
         #Liberation des objets
         lastVid.release()
         cv2.destroyAllWindows()
-
 
 
 
