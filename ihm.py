@@ -29,9 +29,13 @@ class EveryThing:
         self.saveVidButton = Button(frame, text="Sauvegarder Video", command=self.sauvegarderVideo)
         self.saveVidButton.grid(row=3, column=0, sticky=W)
 
+        #Bouton de lecture de n'importe quelle video
+        self.viewingVideoButton = Button(frame, text="Lecture", command=self.viewVideo)
+        self.viewingVideoButton.grid(row=4, column=0, sticky=W)
+
         #Bouton d'arret du script
         self.quitButton = Button(frame, text="Quitter", command=frame.quit)
-        self.quitButton.grid(row=4, column=0, sticky=W)
+        self.quitButton.grid(row=5, column=0, sticky=W)
 
         #option d'affichage dans l'explorateur de fichier
         self.file_opt = options = {}
@@ -45,7 +49,7 @@ class EveryThing:
             #Creation d'un frameobject
             check, frame = self.video.read()
             #streaming de la capture
-            cv2.imshow("Capture en cours", frame)
+            cv2.imshow("Streaming en cours", frame)
             #Appuyer sur s pour sauvegarder
             if cv2.waitKey(5) == ord('s'):
                 self.sauvegarderTempVideo()
@@ -53,7 +57,6 @@ class EveryThing:
             if cv2.waitKey(5) & 0xFF == ord('a'):
                 cv2.destroyAllWindows()
                 break
-
 
     def sauvegarderTempVideo(self):
         #Destruction des fenetre pour eviter des freezes
@@ -82,7 +85,6 @@ class EveryThing:
         #Copie de la video
         copy2(pathsrc, pathdest)
 
-
     def regarderDerniereVideo(self):
         #Destruction des fenetre pour eviter des freezes
         cv2.destroyAllWindows()
@@ -94,7 +96,7 @@ class EveryThing:
             check, frame = lastVid.read()
             if(check == True):
                 #Visionage de la video enregistrée
-                cv2.imshow('frame',frame)
+                cv2.imshow('Derniere video capturee',frame)
                 #Appuyer sur q pour arreter le visionage de video, 50 ici defini la vitesse de lecture
                 #Plus le nombre est petit, plus la video va vite
                 if cv2.waitKey(50) & 0xFF == ord('q'):
@@ -106,7 +108,29 @@ class EveryThing:
         lastVid.release()
         cv2.destroyAllWindows()
 
+    def viewVideo(self):
+        #Destruction des fenetre pour eviter des freezes
+        cv2.destroyAllWindows()
+        ##Selection du fichier a visioner
+        fichier = filedialog.askopenfilename(**self.file_opt)
+        vid = cv2.VideoCapture(fichier)
+        #boucle de visionage
+        while (vid.isOpened()):
+            #Creation d'un frameobject
+            check, frame = vid.read()
+            if(check == True):
+                #Visionage de la video enregistrée
+                cv2.imshow(fichier,frame)
+                #Appuyer sur q pour arreter le visionage de video, 50 ici defini la vitesse de lecture
+                #Plus le nombre est petit, plus la video va vite
+                if cv2.waitKey(50) & 0xFF == ord('q'):
+                    break
+            else:
+                break
 
+        #Liberation des objets
+        vid.release()
+        cv2.destroyAllWindows()
 
 #Main effectif
 mainWin = Tk()
